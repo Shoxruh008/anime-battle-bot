@@ -14,7 +14,7 @@ class Character:
     base_spd: int
     price: int
     image_url: Optional[str] = None
-    skills: List[Dict] = None
+    skills: Optional[List[Dict]] = None
 
     def __post_init__(self):
         if self.skills is None:
