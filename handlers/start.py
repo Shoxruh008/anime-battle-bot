@@ -13,6 +13,10 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         db.create_user(user_id, user.username or user.first_name)
         existing_user = db.get_user(user_id)
     
+    if not existing_user:
+        await update.message.reply_text("Xatolik yuz berdi. Iltimos qaytadan urinib ko'ring.")
+        return
+    
     welcome_text = f"""
 🎌 **Anime Jang** botiga xush kelibsiz, {user.first_name}!
 
