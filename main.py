@@ -3,7 +3,11 @@ import logging
 from telegram.ext import Application, CommandHandler, MessageHandler, CallbackQueryHandler, filters
 
 from config import BOT_TOKEN, ADMIN_ID
-from database import db
+from database import Database
+
+# Database yaratish
+db = Database("data/anime_battle.db")
+
 from handlers import (
     start, show_profile, handle_profile_callbacks,
     show_card_acquisition, show_my_cards, handle_card_callbacks,
@@ -45,7 +49,7 @@ async def handle_message(update, context):
 def main():
     """Botni ishga tushirish"""
     if not BOT_TOKEN:
-        raise ValueError("BOT_TOKEN topilmadi! Iltimos, .env faylida TOKEN ni o'rnating.")
+        raise ValueError("BOT_TOKEN topilmadi! Iltimos, .env faylida BOT_TOKEN ni o'rnating.")
     
     # Application yaratish
     application = Application.builder().token(BOT_TOKEN).build()

@@ -1,11 +1,14 @@
 import sqlite3
 import json
+import os
 from datetime import datetime
 from typing import List, Optional, Dict, Any
 from models import User, Character, OwnedCharacter, Team, Clan
 
 class Database:
     def __init__(self, db_file: str):
+        # Papka mavjudligini tekshirish
+        os.makedirs(os.path.dirname(db_file), exist_ok=True)
         self.db_file = db_file
         self.init_db()
         self.load_characters()
@@ -20,7 +23,7 @@ class Database:
         # Users jadvali
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS users (
-                user_id BIGINT PRIMARY KEY,
+                user_id INTEGER PRIMARY KEY,
                 username TEXT,
                 started_at TIMESTAMP,
                 premium BOOLEAN DEFAULT FALSE,
@@ -57,7 +60,7 @@ class Database:
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS owned_chars (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                user_id BIGINT,
+                user_id INTEGER,
                 char_id INTEGER,
                 level INTEGER DEFAULT 1,
                 hp INTEGER,
@@ -76,7 +79,7 @@ class Database:
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS teams (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                user_id BIGINT,
+                user_id INTEGER,
                 name TEXT,
                 char_ids TEXT,
                 is_active BOOLEAN DEFAULT FALSE,
@@ -89,7 +92,7 @@ class Database:
             CREATE TABLE IF NOT EXISTS clans (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 name TEXT,
-                owner_id BIGINT,
+                owner_id INTEGER,
                 password TEXT,
                 battlecoin_bank INTEGER DEFAULT 0,
                 capacity INTEGER DEFAULT 5,
@@ -102,7 +105,7 @@ class Database:
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS clan_members (
                 clan_id INTEGER,
-                user_id BIGINT,
+                user_id INTEGER,
                 joined_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 role TEXT DEFAULT 'member',
                 PRIMARY KEY (clan_id, user_id),
@@ -145,10 +148,17 @@ class Database:
                     (id, name, element, rarity, base_hp, base_atk, base_def, base_spd, price_anicoin, image_url, skills)
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ''', (
-                    char_data['id'], char_data['name'], char_data['element'],
-                    char_data['rarity'], char_data['base_hp'], char_data['base_atk'],
-                    char_data['base_def'], char_data['base_spd'], char_data['price_anicoin'],
-                    char_data['image_url'], skills_json
+                    char_data['id'], 
+                    char_data['name'], 
+                    char_data['element'].lower(),  # elementni kichik harfga o'tkazish
+                    char_data['rarity'].lower(),   # rarityni kichik harfga o'tkazish
+                    char_data['base_hp'], 
+                    char_data['base_atk'],
+                    char_data['base_def'], 
+                    char_data['base_spd'], 
+                    char_data.get('price', 1000),  # default price
+                    char_data.get('image_url', ''), 
+                    skills_json
                 ))
             
             conn.commit()
@@ -168,10 +178,18 @@ class Database:
         
         if row:
             return User(
-                user_id=row[0], username=row[1], started_at=datetime.fromisoformat(row[2]),
-                premium=bool(row[3]), anicoin=row[4], battlecoin=row[5], jeton=row[6],
-                keys=row[7], total_matches=row[8], wins=row[9], referral_code=row[10],
-                last_jeton_claim=datetime.fromisoformat(row[11]) if row[11] else None,
+                user_id=row[0], 
+                username=row[1], 
+                started_at=datetime.fromisoformat(row[2]) if isinstance(row[2], str) else row[2],
+                premium=bool(row[3]), 
+                anicoin=row[4], 
+                battlecoin=row[5], 
+                jeton=row[6],
+                keys=row[7], 
+                total_matches=row[8], 
+                wins=row[9], 
+                referral_code=row[10],
+                last_jeton_claim=datetime.fromisoformat(row[11]) if row[11] and isinstance(row[11], str) else row[11],
                 clan_id=row[12]
             )
         return None
@@ -237,9 +255,17 @@ class Database:
         if row:
             skills = json.loads(row[10]) if row[10] else []
             return Character(
-                id=row[0], name=row[1], element=row[2], rarity=row[3],
-                base_hp=row[4], base_atk=row[5], base_def=row[6], base_spd=row[7],
-                price_anicoin=row[8], image_url=row[9], skills=skills
+                id=row[0], 
+                name=row[1], 
+                element=row[2], 
+                rarity=row[3],
+                base_hp=row[4], 
+                base_atk=row[5], 
+                base_def=row[6], 
+                base_spd=row[7],
+                price=row[8],  # price_anicoin -> price
+                image_url=row[9], 
+                skills=skills
             )
         return None
     
@@ -255,9 +281,17 @@ class Database:
         for row in rows:
             skills = json.loads(row[10]) if row[10] else []
             characters.append(Character(
-                id=row[0], name=row[1], element=row[2], rarity=row[3],
-                base_hp=row[4], base_atk=row[5], base_def=row[6], base_spd=row[7],
-                price_anicoin=row[8], image_url=row[9], skills=skills
+                id=row[0], 
+                name=row[1], 
+                element=row[2], 
+                rarity=row[3],
+                base_hp=row[4], 
+                base_atk=row[5], 
+                base_def=row[6], 
+                base_spd=row[7],
+                price=row[8], 
+                image_url=row[9], 
+                skills=skills
             ))
         
         return characters
@@ -273,9 +307,17 @@ class Database:
         characters = []
         for row in rows:
             characters.append(OwnedCharacter(
-                id=row[0], user_id=row[1], char_id=row[2], level=row[3],
-                hp=row[4], atk=row[5], def_=row[6], spd=row[7], exp=row[8],
-                obtained_at=datetime.fromisoformat(row[9]), source=row[10]
+                id=row[0], 
+                user_id=row[1], 
+                char_id=row[2], 
+                level=row[3],
+                hp=row[4], 
+                atk=row[5], 
+                def_=row[6], 
+                spd=row[7], 
+                exp=row[8],
+                obtained_at=datetime.fromisoformat(row[9]) if isinstance(row[9], str) else row[9], 
+                source=row[10]
             ))
         
         return characters
@@ -289,7 +331,7 @@ class Database:
         rarity_multiplier = {
             "common": 1.0, "rare": 1.2, "epic": 1.5, 
             "legendary": 2.0, "mythical": 2.5
-        }.get(char_template.rarity, 1.0)
+        }.get(char_template.rarity.lower(), 1.0)
         
         hp = int(char_template.base_hp * rarity_multiplier)
         atk = int(char_template.base_atk * rarity_multiplier)
@@ -322,8 +364,11 @@ class Database:
         for row in rows:
             char_ids = json.loads(row[3]) if row[3] else []
             teams.append(Team(
-                id=row[0], user_id=row[1], name=row[2], 
-                char_ids=char_ids, is_active=bool(row[4])
+                id=row[0], 
+                user_id=row[1], 
+                name=row[2], 
+                char_ids=char_ids, 
+                is_active=bool(row[4])
             ))
         
         return teams
@@ -374,9 +419,14 @@ class Database:
         
         if row:
             return Clan(
-                id=row[0], name=row[1], owner_id=row[2], password=row[3],
-                battlecoin_bank=row[4], capacity=row[5], 
-                created_at=datetime.fromisoformat(row[6]), description=row[7]
+                id=row[0], 
+                name=row[1], 
+                owner_id=row[2], 
+                password=row[3],
+                battlecoin_bank=row[4], 
+                capacity=row[5], 
+                created_at=datetime.fromisoformat(row[6]) if isinstance(row[6], str) else row[6], 
+                description=row[7]
             )
         return None
     
@@ -395,8 +445,13 @@ class Database:
         
         if row:
             return Clan(
-                id=row[0], name=row[1], owner_id=row[2], password=row[3],
-                battlecoin_bank=row[4], capacity=row[5],
-                created_at=datetime.fromisoformat(row[6]), description=row[7]
+                id=row[0], 
+                name=row[1], 
+                owner_id=row[2], 
+                password=row[3],
+                battlecoin_bank=row[4], 
+                capacity=row[5],
+                created_at=datetime.fromisoformat(row[6]) if isinstance(row[6], str) else row[6], 
+                description=row[7]
             )
         return None
