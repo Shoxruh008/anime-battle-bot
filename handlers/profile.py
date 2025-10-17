@@ -8,7 +8,10 @@ async def show_profile(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = db.get_user(user_id)
     
     if not user:
-        await update.message.reply_text("❌ Xatolik: Foydalanuvchi topilmadi")
+        if update.message:
+            await update.message.reply_text("❌ Xatolik: Foydalanuvchi topilmadi")
+        elif update.callback_query:
+            await update.callback_query.edit_message_text("❌ Xatolik: Foydalanuvchi topilmadi")
         return
     
     # Kartalar sonini hisoblash
@@ -47,11 +50,19 @@ async def show_profile(update: Update, context: ContextTypes.DEFAULT_TYPE):
 📢 **Referal kodingiz:** `{user.referral_code}`
 """
     
-    await update.message.reply_text(
-        profile_text, 
-        reply_markup=get_profile_keyboard(), 
-        parse_mode='Markdown'
-    )
+    # Callback query yoki oddiy message ekanligini tekshirish
+    if update.callback_query:
+        await update.callback_query.edit_message_text(
+            profile_text, 
+            reply_markup=get_profile_keyboard(), 
+            parse_mode='Markdown'
+        )
+    else:
+        await update.message.reply_text(
+            profile_text, 
+            reply_markup=get_profile_keyboard(), 
+            parse_mode='Markdown'
+        )
 
 async def handle_profile_callbacks(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
