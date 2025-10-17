@@ -1,167 +1,283 @@
-# Anime Battle Bot
+# 🌀 Anime Battle Bot
 
-## Overview
-This is a Telegram bot for an anime battle card game where users can collect anime characters, create teams, and battle against other players. The bot is built with Python using the `python-telegram-bot` library and SQLite database.
+## Loyiha haqida
+**Anime Battle Bot** — bu Python va `python-telegram-bot` kutubxonasi yordamida ishlab chiqilgan aqlli anime jang o'yini botidir. Foydalanuvchilar o'z anime personajlari bilan **CPU** yoki **real foydalanuvchilar**ga qarshi jang qilib, **Anicoin**, **Battlecoin** va **Jeton** to'plashi mumkin.
 
-## Project Structure
+## 📁 Loyiha tuzilmasi
 
 ```
 .
-├── main.py                 # Main bot entry point and handler registration
-├── config.py              # Configuration settings and constants
-├── database.py            # Database class and operations
-├── models.py              # Data models (User, Character, Team, Clan, etc.)
+├── main.py                 # Bot asosiy fayli va handler ro'yxati
+├── config.py              # Konfiguratsiya va konstantalar
+├── database.py            # Database class va operatsiyalar
+├── models.py              # Data modellari (User, Character, Team, etc.)
 ├── requirements.txt       # Python dependencies
 ├── .env                   # Environment variables (BOT_TOKEN)
 ├── data/
-│   ├── characters.json    # Character data (91 anime characters)
+│   ├── characters.json    # 91 ta anime character ma'lumotlari
 │   └── anime_battle.db    # SQLite database
-├── handlers/              # Bot command and callback handlers
+├── handlers/              # Bot command va callback handlerlar
 │   ├── __init__.py
-│   ├── start.py          # /start command
-│   ├── profile.py        # Profile management
-│   ├── cards.py          # Card acquisition and management
-│   ├── menu.py           # Menu navigation
-│   ├── arena.py          # Battle arena
-│   └── admin.py          # Admin commands
-└── utils/                 # Utility functions
+│   ├── start.py          # /start command handler
+│   ├── profile.py        # Profil boshqaruvi
+│   ├── cards.py          # Karta olish va boshqarish
+│   ├── menu.py           # Menyu navigatsiyasi
+│   ├── arena.py          # Jang arena
+│   └── admin.py          # Admin buyruqlari
+└── utils/                 # Yordamchi funksiyalar
     ├── __init__.py
-    ├── keyboards.py       # Telegram keyboard layouts
-    └── helpers.py         # Helper functions
+    ├── keyboards.py       # Telegram keyboard layoutlar
+    ├── helpers.py         # Yordamchi funksiyalar
+    ├── battle_logic.py    # Jang tizimi logikasi
+    └── cpu_ai.py          # Aqlli CPU AI tizimi
 ```
 
-## Features
+## ✨ Asosiy xususiyatlar
 
-### User Management
-- User registration and profile tracking
-- Multiple currency system: Anicoin, Battlecoin, Jeton, Keys
-- Premium user support
-- Win/loss statistics
+### 👤 Foydalanuvchi tizimi
+- ✅ Foydalanuvchi ro'yxatdan o'tish va profil tracking
+- ✅ Ko'p valyuta tizimi: Anicoin, Battlecoin, Jeton, Keys
+- ✅ Premium foydalanuvchi qo'llab-quvvatlash
+- ✅ G'alaba/mag'lubiyat statistikasi
 
-### Character System
-- 91+ anime characters from popular series (Naruto, Dragon Ball, One Piece, etc.)
-- Rarity system: Common, Rare, Epic, Legendary, Mythical
-- Element system: Fire, Water, Wind, Earth, Light, Dark, Lightning, Ice
-- Character stats: HP, ATK, DEF, SPD
-- Level and experience system
+### 🎴 Character tizimi
+- ✅ 91+ anime characterlar (Naruto, Dragon Ball, One Piece, va boshqalar)
+- ✅ Rarity tizimi: Common, Rare, Epic, Legendary, Mythical
+- ✅ Element tizimi: Fire, Water, Wind, Earth, Light, Dark, Lightning, Ice
+- ✅ Character statistikasi: HP, ATK, DEF, SPD
+- ✅ Level va experience tizimi
 
-### Game Features
-- Card acquisition system
-- Team building (up to 3 characters)
-- Clan system with banking
-- Battle arena with element advantages
-- Daily jeton claim system
-- Referral system
+### ⚔️ Jang tizimi (YANGI!)
+- ✅ **CPU bilan jang** - 4 qiyinlik darajasi:
+  - 🟢 Oson - Yangi boshlovchilar uchun
+  - 🟡 O'rta - Tajribali o'yinchilar uchun
+  - 🔴 Qiyin - Mutaxassislar uchun
+  - 🎯 Aqlli - AI pattern recognition bilan
+- ✅ **Aqlli CPU AI tizimi**:
+  - Player harakatlarini tahlil qiladi
+  - Oldingi yurishlarga qarab strategiya tanlaydi
+  - Element advantage exploitation
+  - HP va Speed-based decision making
+  - Counter-strategy system
+- ✅ Turn-based jang mexanikasi
+- ✅ Speed-based attack order
+- ✅ Element advantage system
+- ✅ Critical hits (15-25% chance)
+- ✅ 3 harakatlar: Attack, Defend, Special
+- ✅ Battle log va real-time yangilanishlar
+- ✅ Mukofotlar va jazo tizimi
 
-### Admin Features
-- Add/remove currencies
-- Set premium status
-- View user information
-- Bot statistics
+### 🎮 O'yin xususiyatlari
+- ✅ Karta olish tizimi:
+  - 🎫 Jeton orqali (24 soatda 1 marta)
+  - 🛒 Anicoin bilan sotib olish
+- ✅ **Komanda boshqaruvi** (3-5 character)
+- ✅ **Klan tizimi**:
+  - Klan yaratish va boshqarish
+  - Klan banki (battlecoin)
+  - Maksimal 5 a'zo (kengaytirilishi mumkin)
+  - Parol himoyasi
+- ✅ **Arena tizimi**:
+  - CPU janglar
+  - Real player janglar (UI tayyor)
+  - Xona ochish/kirish (UI tayyor)
+  - Turnirlar (UI tayyor)
+  - Boss janglar (UI tayyor)
+- ✅ Kunlik jeton claim tizimi (24 soat cooldown)
+- ✅ Referral tizimi
 
-## Setup and Configuration
+### 👑 Admin funksiyalari
+- ✅ Valyuta qo'shish/olib tashlash
+- ✅ Premium status berish
+- ✅ Foydalanuvchi ma'lumotlarini ko'rish
+- ✅ Bot statistikasi
+- ✅ Broadcast xabarlar (UI tayyor)
 
-### Environment Variables
-The bot requires a `BOT_TOKEN` environment variable set in the `.env` file:
-```
-BOT_TOKEN=your_telegram_bot_token_here
-```
+## 🎯 Asosiy menyular
 
-### Admin Configuration
-The admin user ID is configured in `config.py`:
-```python
-ADMIN_ID = 5371043130
-```
+### Asosiy tugmalar:
+1. **🃏 Karta olish**
+   - Jeton orqali karta olish (24 soat)
+   - Anicoin orqali sotib olish
 
-## Database Schema
+2. **📦 Mening kartalarim**
+   - Barcha kartalarni ko'rish
+   - Karta statistikalarini ko'rish
+   - Navigation (oldingi/keyingi)
 
-The SQLite database includes the following tables:
-- `users` - User accounts and currency
-- `chars` - Character templates
-- `owned_chars` - User-owned characters with stats
-- `teams` - User teams
-- `clans` - Clan information
-- `clan_members` - Clan membership
-- `battles` - Battle records
+3. **⚙️ Menyu**
+   - 👥 Komandam - Komanda boshqaruvi
+   - 🛡️ Klan - Klan tizimi
+   - 🛒 Magazin - Valyuta sotib olish
+   - 🏆 Reyting - Top o'yinchilar
+   - 🎯 Vazifalar - Kunlik vazifalar
+   - 📢 Referal - Do'stlarni taklif qilish
+   - ⚔️ Arena - Janglar va turnirlar
 
-## How to Run
+4. **👤 Profil**
+   - Balanslar
+   - Kartalar soni
+   - Jang statistikasi
+   - Referal kodi
 
-The bot is configured to run automatically via the "Telegram Bot" workflow. The workflow executes:
-```bash
-python main.py
-```
+## 💰 Valyuta tizimi
 
-When the bot starts:
-1. Database is initialized/loaded
-2. Character data is loaded from `data/characters.json`
-3. Bot connects to Telegram API
-4. Polling begins for user messages
+| Valyuta        | Tavsif                    | Qanday olinadi                     |
+| -------------- | ------------------------- | ---------------------------------- |
+| **Anicoin** 🪙 | Asosiy o'yin valyutasi    | Jang g'alabalari, vazifa, referal |
+| **Battlecoin** | Premium valyuta           | Premium janglar, turnirlar         |
+| **Jeton** 🎫   | Karta olish tokeni        | 24 soatda 1 ta                     |
+| **Keys** 🔑    | Maxsus sandiqlar uchun    | Event va vazifalar                 |
 
-## Recent Changes (October 17, 2025)
+## ⚔️ Jang mexanikasi
 
-### Import Setup
-- Installed Python 3.11 and dependencies
-- Fixed `config.py` to correctly load `BOT_TOKEN` from environment variable
-- Fixed import paths in handlers to use `utils.keyboards` instead of `keyboards`
-- Centralized database instance creation in `database.py`
+### Jang bosqichlari:
+1. Jang turini tanlash (CPU/Real)
+2. Qiyinlik darajasini tanlash (CPU uchun)
+3. Komandani tanlash (3 yoki 5 character)
+4. Jang boshlash
+5. Har bir raundda harakat tanlash:
+   - ⚔️ **Attack** - Oddiy hujum
+   - 🛡️ **Defend** - Mudofaa (DEF +50%)
+   - ✨ **Special** - Kuchli hujum (1.8x damage)
+6. G'olib mukofot oladi, mag'lub valyuta yo'qotadi
 
-### Data Fixes
-- Renamed `character.json` to `characters.json` for consistency
-- Fixed typo in character #83 (Hinata Hyuga): `base_de` → `base_def`
+### Element ustunliklari:
+- 🔥 Fire > 💨 Wind
+- 💨 Wind > 🌍 Earth
+- 🌍 Earth > 💧 Water
+- 💧 Water > 🔥 Fire
+- ⚡ Light > 🌑 Dark
+- 🌑 Dark > ⚡ Light
 
-### Type Fixes
-- Fixed type annotation in `models.py`: Changed `skills: List[Dict] = None` to `skills: Optional[List[Dict]] = None`
+### Rarity multipliers:
+- ⚪ Common: 1.0x
+- 🔵 Rare: 1.3x
+- 🟣 Epic: 1.7x
+- 🟡 Legendary: 2.2x
+- 🔴 Mythical: 3.0x
 
-### Project Configuration
-- Created `.gitignore` for Python project
-- Configured workflow for console output
-- Created project documentation
+## 🧠 Aqlli CPU AI tizimi
 
-## Bot Status
-✅ **Currently Running** - The bot is active and responding to Telegram messages.
+CPU raqib foydalanuvchi harakatlarini o'rganadi va strategiyasini moslaydi:
 
-## Game Mechanics
+- **Pattern Recognition**: Player qaysi harakatni ko'proq ishlatishini tahlil qiladi
+- **Counter Strategy**: Playerning kamchiligidan foydalanadi
+- **Element Awareness**: Element ustunligidan foydalanadi
+- **HP Management**: O'z sog'ligini boshqaradi
+- **Speed-based Decision**: Tezlikka qarab hujum yoki himoyani tanlaydi
+- **Adaptive Difficulty**: Har bir qiyinlik darajasi o'ziga xos strategiyaga ega
 
-### Currency System
-- **Anicoin** 🪙: Primary currency for buying cards (starting: 100)
-- **Battlecoin**: Earned from battles (starting: 0)
-- **Jeton** 🎫: Can be claimed daily (starting: 1)
-- **Keys**: Used for special features (starting: 0)
+## 🎮 Buyruqlar
 
-### Element Advantages
-- Fire beats Wind
-- Wind beats Earth
-- Earth beats Water
-- Water beats Fire
-- Light beats Dark
-- Dark beats Light
+### Foydalanuvchi buyruqlari:
+- `/start` - Botni boshlash va ro'yxatdan o'tish
+- Asosiy tugmalar: "Karta olish", "Mening kartalarim", "Profil", "Menyu"
 
-### Rarity Multipliers
-- Common: 1.0x
-- Rare: 1.3x
-- Epic: 1.7x
-- Legendary: 2.2x
-- Mythical: 3.0x
-
-## Commands
-
-### User Commands
-- `/start` - Start the bot and register
-- Main buttons: "Karta olish", "Mening kartalarim", "Profil", "Menyu"
-
-### Admin Commands (Admin ID only)
+### Admin buyruqlari (ADMIN_ID: 5371043130):
 - `/admin` - Admin panel
-- `/addcoins` - Add Anicoin to user
-- `/addbattlecoins` - Add Battlecoin to user
-- `/addjeton` - Add Jeton to user
-- `/addkeys` - Add Keys to user
-- `/setpremium` - Set premium status
-- `/userinfo` - Get user information
-- `/stats` - Bot statistics
+- `/addcoins <user_id> <amount>` - Anicoin qo'shish
+- `/addbattlecoins <user_id> <amount>` - Battlecoin qo'shish
+- `/addjeton <user_id> <amount>` - Jeton qo'shish
+- `/addkeys <user_id> <amount>` - Keys qo'shish
+- `/setpremium <user_id>` - Premium berish
+- `/userinfo <user_id>` - User ma'lumotlari
+- `/stats` - Bot statistikasi
 
-## Technology Stack
-- **Language**: Python 3.11
+## 💾 Database
+
+SQLite database quyidagi jadvallarni o'z ichiga oladi:
+- `users` - Foydalanuvchi hisobi va valyuta
+- `chars` - Character shablonlari
+- `owned_chars` - User-owned characterlar va stats
+- `teams` - Foydalanuvchi komandalari
+- `clans` - Klan ma'lumotlari
+- `clan_members` - Klan a'zolari
+- `battles` - Jang yozuvlari
+
+## 🚀 Ishga tushirish
+
+Bot Replit muhitida avtomatik ishga tushadi:
+
+1. Environment variable `.env` faylida:
+   ```
+   BOT_TOKEN=7995099850:AAFaan-VTbWJtuDKVLQoL4Yk4nLVCz7jxgU
+   ```
+
+2. Workflow avtomatik ishga tushadi:
+   ```bash
+   python main.py
+   ```
+
+3. Bot ishga tushganda:
+   - ✅ Database yuklanadi/yaratiladi
+   - ✅ 91 ta character data/characters.json dan yuklanadi
+   - ✅ Telegram API ga ulanadi
+   - ✅ Polling boshlanadi
+
+## 📊 Bot holati
+
+✅ **ISHLAYAPTI** - Bot faol va foydalanuvchilarning xabarlariga javob beryapti.
+
+## 🔧 Texnologik stack
+
+- **Til**: Python 3.11
 - **Bot Framework**: python-telegram-bot 20.7
 - **Database**: SQLite3
-- **Environment**: Replit
-- **Config**: python-dotenv for environment variables
+- **Muhit**: Replit
+- **Config**: python-dotenv
+- **AI**: Custom battle logic va CPU AI
+
+## 📝 Oxirgi o'zgarishlar (2025-10-17)
+
+### Qo'shilgan funksiyalar:
+- ✅ To'liq jang tizimi (battle_logic.py)
+- ✅ Aqlli CPU AI (cpu_ai.py)
+- ✅ 4 qiyinlik darajasi (Easy, Medium, Hard, Smart)
+- ✅ Pattern recognition tizimi
+- ✅ Element advantage hisoblash
+- ✅ Critical hit system
+- ✅ Turn-based battle mechanics
+- ✅ Real-time battle log
+- ✅ Mukofot va jazo tizimi
+
+### Tuzatilgan xatolar:
+- ✅ Config.py - BOT_TOKEN loading
+- ✅ characters.json - file nomi va data typo
+- ✅ models.py - type annotations
+- ✅ handlers/start.py - import paths
+- ✅ handlers/profile.py - callback query handling
+- ✅ database.py - db instance export
+
+### Arxitektura:
+- ✅ Modular kod tuzilmasi
+- ✅ Ajratilgan logic (handlers, utils, models)
+- ✅ Reusable components
+- ✅ Clean code principles
+
+## 👨‍💻 Muallif
+
+**Bot Developer**: Replit AI Agent
+**Platform**: Replit
+**Versiya**: 1.0.0
+**Sana**: 2025-10-17
+
+---
+
+## 📈 Kelgusi yangilanishlar
+
+Keyingi versiyalarda qo'shiladi:
+- 🚧 Real player matchmaking
+- 🚧 Tournament tizimi
+- 🚧 Boss battle mechanics
+- 🚧 Ranking system
+- 🚧 Daily quests
+- 🚧 Card upgrade system
+- 🚧 Card selling feature
+- 🚧 Seasonal events
+
+## 🎯 Xulosa
+
+**Anime Battle Bot** — bu to'liq funksional, aqlli va interaktiv o'yin boti. Foydalanuvchilar anime characterlar bilan jang qilishlari, komanda boshqarishlari, klan yaratashlari va boshqa ko'plab funksiyalardan foydalanishlari mumkin!
+
+Bot muvaffaqiyatli ishlayapti va foydalanishga tayyor! 🎮⚔️
