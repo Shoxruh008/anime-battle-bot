@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Bot tokeni
-BOT_TOKEN = os.getenv('7995099850:AAFaan-VTbWJtuDKVLQoL4Yk4nLVCz7jxgU')  # .env faylida BOT_TOKEN deb saqlansin
+BOT_TOKEN = os.getenv('BOT_TOKEN')
 
 # Admin ID
 ADMIN_ID = 5371043130
