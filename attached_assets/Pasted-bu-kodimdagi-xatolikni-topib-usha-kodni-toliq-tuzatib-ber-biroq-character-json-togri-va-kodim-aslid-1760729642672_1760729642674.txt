@@ -1,0 +1,459 @@
+bu kodimdagi xatolikni topib usha kodni toliq tuzatib ber(biroq character json togri) va kodim aslida shundek bolishi kerak edi(kodlar joylashuvi togri):
+📌 Umumiy maqsad
+
+“Anime Jang” — Telegram uchun anime personajlari bilan oʻynaladigan strategik PvP/PvE bot.
+Foydalanuvchi: boshlangʻichda random 3 ta karta oladi, keyin shop, upgrade, klanlar, arena va turnirlar orqali kuchayadi. Janglar — mantiqan aqlli CPU va real odamlar bilan bo‘lishi mumkin. Barcha asosiy menyular oddiy (non-inline) tugmalar bilan — foydalanuvchi /start bosganda shu 4 ta paydo boʻladi:
+
+Karta olish
+
+Mening kartalarim
+
+Menyu
+
+Profil
+
+🧭 Asosiy menyu (oddiy tugmalar — ReplyKeyboard)
+
+Bu 4 tugma botga kelganda birinchi koʻrinadi (ReplyKeyboard, inline emas):
+
+[Karta olish]   [Mening kartalarim]
+[Menyu]         [Profil]
+
+👤 Profil (bosilganda ko‘rinadigan maʼlumotlar)
+
+Profil tugmasini bosganida quyidagi maʼlumotlar ko‘rsatiladi:
+
+Nomi (username)
+
+ID (Telegram ID)
+
+Premium: Aktiv / Noaktiv
+
+Botga start bosgan sana (timestamp)
+
+Balanslar:
+
+anicoin (asosiy o‘yin pul)
+
+jeton (karta tirnash uchun token)
+
+battlecoin (qimmat valyuta — premium janglar uchun)
+
+keys (kelajak item ochish uchun)
+
+Karta:
+
+Karta (jang uchun) — userda jami nechta jangga mos karta mavjud (masalan: 3/5 slotlarda)
+
+Jeton karta soni — jeton bilan olingan kartalar statistikasi (ular jangda qatnashmasligi mumkin)
+
+Jang statistikasi:
+
+Jami janglar
+
+Gʻalabalar soni
+
+Qoʻshimcha: profil ichida 🔧 Sozlamalar, 🔙 Orqaga tugmalari mavjud boʻladi.
+
+💱 Valyutalar va ularning ishlashi (aniqli qoidalar)
+1. anicoin
+
+Asosiy o‘yin valyutasi.
+
+Oddiy janglar uchun mukofot va karta olish (baʼzi variantlar) shu bilan toʻlanadi.
+
+Jangdan keyin “mantiqan mos” hisob bilan anicoin beriladi (qatnashgan karta raritysiga, jang qiyinligiga, performance-ga qarab).
+
+2. battlecoin
+
+Qimmat va premium valyuta.
+
+Premium janglar (faqat battlecoin hisobida o‘tkaziladi) — yuqori mukofot va noyob itemlar.
+
+Battlecoin janglarda yutgan tomonga beriladi (yutqazgan tomonga esa anicoin dan yechildi / kamaytiriladi — yoki boshqa penalti).
+
+Battlecoin va anicoin teng emas — balansi va qiymati boshqacha.
+
+3. jeton
+
+Har 24 soatda 1 marta olish imkoni bo‘lgan token (foydalanuvchi Karta olish → Jeton olish tugmasini bosganda).
+
+Jeton bosilganda random bir personaj (character fragment yoki to‘liq karta) tushishi mumkin — bir xil karta qayta tushib qolishi mumkin.
+
+Jeton hozircha nima uchun kerakligi sxemada: karta birlashtirish / upgrade / special events uchun ishlatiladi (kelajakda qoʻshimcha funksiyalar qoʻshiladi).
+
+4. keys
+
+Kelajakdagi chest/pack ochish uchun ishlatiladi — hozircha shop item.
+
+🎴 Karta olish bo‘limi — (Karta olish tugmasi ichida ikki variant)
+
+Karta olish bo‘limida 2 asosiy variant:
+
+Jeton olish (24 soatlik cooldown)
+
+Foydalanuvchi Jeton olish tugmasini bosadi → agar oxirgi jeton 24 soat avval olinmagan bo‘lsa, +1 jeton qo‘shiladi va random personaj fragmenti yoki butun karta kiradi.
+
+Jeton bosish/foydalanish 24 soatda 1 marta.
+
+Karta sotib olish (direct buy — anicoin bilan)
+
+Bu yerda Katalog (10 ta blokda paging bilan) paydo boʻladi: har blokda 10 ta personaj roʻyxati, foydalanuvchi Keyingi tugmasi bilan navbatdagi 10 ta kartaga oʻtadi.
+
+Har personaj uchun: tanlash → toʻliq maʼlumot → narx → sotib olish tugmasi.
+
+Har bir personaj bitta marta sotib olinadi (agar boshqa user hali olmay qolgan bo‘lsa — u lock holatida qoladi).
+
+UI flow (Katalog):
+
+Inline tugmalar: << Oldingi 10, 10 ta ro'yxat, Keyingi 10 >>
+
+Har characterda: To'liq ma'lumot va Sotib olish (Purchase) tugmalari.
+
+🗂️ Mening kartalarim (karta tafsilot oynasi)
+
+Mening kartalarim bo‘limi — bir-biriga oʻtuvchi (prev/next) tarzda bitta karta va uning toʻliq maʼlumotini koʻrsatadi:
+
+Karta oynasi:
+
+Karta nomi, rasm, element, rarity
+
+Stats: HP, ATK, DEF, SPD, Skill(lar)
+
+Holat: max level, current level, upgrade koszt
+
+Pastdagi tugmalar (inline yoki UI):
+
+⏪ Orqaga
+
+⚔️ Oldinga
+
+⬆️ Kuchaytirish (anicoin bilan yoki jeton orqali birlashtirish - jetondagi personaj fragmentlari birlashtirib kuch berish; jetondagi personajni sarflash orqali kichik boost beradi)
+
+💰 Sotish (sotish narxi = olgan narxidan arzonroq; sotilganda user anicoin oladi)
+
+Jeton orqali birlashtirish: agar userda bir xil character fragmentlari bo‘lsa, ularni yig‘ib combine qilib, karta kuchini oshirish mumkin — lekin jeton orqali birlashtirish faqat kichik boost beradi (toʻliq emas).
+
+🧩 Menyu (bosilganda — inline tugmalar bilan toʻliq bo‘lim)
+
+Menyu bosilganda ichida quyidagi sub-menyu inline tugmalar bilan chiqadi:
+
+Komandam (pre-made teamlar: 1..N saqlangan konfiguratsiyalar)
+
+Klan (yaratish / qoʻshilish)
+
+Magazin (anicoin/battlecoin sotib olish — admin orqali)
+
+Reyting (Top10: yutuqlar, mavsumlar, donat qilganlar)
+
+Vazifalar (daily / weekly quests)
+
+Referal (referal link / kod orqali mukofot)
+
+Arena (Arena -> jang / xona ochish / turnir / boss)
+
+🛡️ Komandam (Team management)
+
+Foydalanuvchi oldindan 3 yoki 5 li jamoalarni tuzib saqlashi mumkin (Save team).
+
+Bu jamoalar jang boshlanganda tezda chaqiriladi (Select saved team) yoki user yangi team tuzadi.
+
+Har teamda: pozitsiyalar (front/mid/back) va bu pozitsiyalar jang strategiyasiga taʼsir qiladi (misol: front — tank, mid — damage, back — support).
+
+🏰 Klanlar (Clan)
+
+Klan yaratish: pulli — battlecoin bilan yaratiladi (qimmatroq). Bot avtomatik ID yaratadi, foydalanuvchidan nom va parol soʻraydi.
+
+Klan aʼzolari: default max 5 ta odam (keyinchalik joy ochish uchun qoʻshimcha toʻlov kerak bo‘ladi — battlecoin).
+
+Klan qoʻshilish: Join → klan ID va parol kiritiladi.
+
+Klan egasi (owner) avtomatik aʼzolikka qoʻshiladi (va unga alohida xabar keladi — Sizni klanga taklif qilishdi: Qoʻshilasizmi?).
+
+Klanlar uchun bank (clan bank) bo‘lib, aʼzolar donation orqali bankni toʻldirishi mumkin (battlecoin/anicoin).
+
+🛒 Magazin (Shop) — real pul integratsiya
+
+Anicoin va Battlecoin ni real pulga sotish imkoniyati mavjud — bu admin bilan bogʻlanish orqali amalga oshadi (manual/automated).
+
+Admin uchun alohida funksiya: deposit/withdraw confirmation, userga currency berish.
+
+Admin ID: 5371043130 (sen bergan).
+
+(Eslatma: bot tokenni hech qayerga ochiq joyga qoʻymaymiz — tokenni xavfsiz saqlash kerak.)
+
+🏆 Reyting (Top-lar)
+
+Top 10 gʻalaba — jami gʻalabalar bo‘yicha
+
+Mavsumiy top (admin start/stop sezoni)
+
+Top donator (eng koʻp real pul / battlecoin ishlatganlar)
+
+Admin sezonlar va statistikalarni boshqarishi mumkin
+
+🎯 Vazifalar va Referal
+
+Vazifalar (daily / weekly): Win 3 matches, Use 5 cards, Buy 1 pack — kichik anicoin mukofotlari.
+
+Referal: user doʻst taklif qilsa va u roʻyxatdan oʻtsa, inviterga anicoin beriladi.
+
+🏟️ Arena (Arena ning ichki tuzilishi)
+
+Arena → 4 bo‘lim: Jang, Xona ochish / Xonaga kirish, Turnir, Boss.
+
+Jang:
+
+Jang turi: CPU (bot bilan) yoki Real odam (matchmaking).
+
+Agar CPU tanlansa — CPU juda “aqlli” o‘ynashi kerak (heuristic + scoring function, keyinchalik MCTS yoki RL bilan kengaytiriladi).
+
+Agar Real tanlansa — matchmaking tizimi random odamni topadi.
+
+Xona ochish / Xonaga kirish:
+
+Room create → room code yaratiladi. Doʻst shu kodni kiritib qoʻshiladi.
+
+Private room uchun parol/limit.
+
+Turnir:
+
+Sezonli yoki vaqtga bogʻlangan turnirlar. (Admin tomonidan yaratiladi)
+
+Boss mode: hozircha ishlab chiqilmoqda (ko‘p o‘yinchi vs boss).
+
+⚔️ Jang oqimi (detailed combat flow)
+1) Jamoa tanlash
+
+Har ikki tomon (user yoki CPU yoki real user) oʻz jamoasini tanlaydi (3 yoki 5).
+
+User eski saqlangan team preset ni chaqirishi yoki yangi team yaratishi mumkin.
+
+2) Kim birinchi yuradi?
+
+Random toss (boshlanishda) yoki speedga qarab (agar sen xohlasang random initial advantage va keyin roundsda speed ishlaydi).
+
+User soʻradi: boshlanish random bo‘ladi.
+
+3) Har turn (vaqt cheklovi)
+
+Har tomonga turn timer beriladi (misol: 30 sekund) — vaqti tugasa avtomatik default action (defend yoki auto-choose) amalga oshadi.
+
+Har yurishda agent quyidagi actionlardan birini tanlaydi:
+
+Attack (normal attack): damage formula
+
+Skill (special): cooldown va mana/energy cost bo‘lishi mumkin
+
+Defend: shu round uchun defence oshadi
+
+Switch: boshqa karta chaqirish (baʼzi limitlar bilan)
+
+Use item (heal, buff) — agar item bor bo‘lsa
+
+4) Damage formula (taklif)
+
+damage = max(1, int( (attacker.atk * skill_multiplier) - (defender.def * 0.5) ))
+
+Element advantage: +10–30% damage
+
+Critical: 5–10% chance, x1.5 damage
+
+Defend: defender.def oshadi (muliplier 1.2-1.3) uchun 1 round
+
+5) CPU “aqlli” yondashuvi (heuristics)
+
+CPU har yurishda quyidagicha qaror qiladi (server-side, deterministic/heuristic):
+
+State awareness:
+
+Active HP ratio (<30%) → heal (agar heal skill / item), else switch to healthier ally, else defend.
+
+Match-up analysis:
+
+Agar element advantage mavjud bo‘lsa → attack.
+
+Agar opponent skill cooldownda bo‘lsa → aggressive attack.
+
+Target prioritization:
+
+Dushmanning eng zaifini yoʻq qilish uchun focusing (low hp & high reward target).
+
+Predictive play:
+
+CPU scoring function yordamida har bir action uchun expected value hisoblaydi: expected_damage - expected_risk va shu actionni maksimalga chiqarganini tanlaydi.
+
+Switch logic:
+
+Agar active karta dushmanning keyingi yurishiga nisbatan juda zaif boʻlsa → switch.
+
+Cooldown/Skill usage:
+
+Powerful skill larni optimal vaziyatda (combo yoki finisher) ishlatadi.
+
+Keyinchalik shu heuristicsni MCTS yoki RL modeliga aylantirish mumkin (battle loglar asosida training).
+
+6) Gʻalaba sharti va reward
+
+Gʻalaba: barcha opponent kartalar HP = 0 bo‘lsa.
+
+Mukofotlar:
+
+Normal jang: base_reward (anicoin) + rarity_bonus + performance_bonus
+
+Premium jang (battlecoin): yutgan tomonga battlecoin va anicoin; yoʻqotgan tomonga anicoin penalti.
+
+Jeton va keys kabi boshqa itemlar baʼzi eventlarda berilishi mumkin.
+🗃️ DB Model (sodda schema, tavsiya: PostgreSQL yoki SQLite dev bosqichida)
+Tables (essentials)
+-- users
+CREATE TABLE users (
+  user_id BIGINT PRIMARY KEY,
+  username TEXT,
+  started_at TIMESTAMP,
+  premium BOOLEAN DEFAULT FALSE,
+  anicoin INTEGER DEFAULT 0,
+  battlecoin INTEGER DEFAULT 0,
+  jeton INTEGER DEFAULT 0,
+  keys INTEGER DEFAULT 0,
+  total_matches INTEGER DEFAULT 0,
+  wins INTEGER DEFAULT 0,
+  referral_code TEXT
+);
+
+-- characters template
+CREATE TABLE chars (
+  id INTEGER PRIMARY KEY,
+  name TEXT,
+  element TEXT,
+  rarity TEXT,
+  base_hp INTEGER,
+  base_atk INTEGER,
+  base_def INTEGER,
+  base_spd INTEGER,
+  price_anicoin INTEGER,
+  image_url TEXT
+);
+
+-- owned characters (instances)
+CREATE TABLE owned_chars (
+  id SERIAL PRIMARY KEY,
+  user_id BIGINT REFERENCES users(user_id),
+  char_id INTEGER REFERENCES chars(id),
+  level INTEGER DEFAULT 1,
+  hp INTEGER,
+  atk INTEGER,
+  def INTEGER,
+  spd INTEGER,
+  obtained_at TIMESTAMP,
+  source TEXT -- "jeton" or "purchase" or "reward"
+);
+
+-- teams presets
+CREATE TABLE teams (
+  id SERIAL PRIMARY KEY,
+  user_id BIGINT REFERENCES users(user_id),
+  name TEXT,
+  char_ids TEXT, -- JSON array
+  is_active BOOLEAN DEFAULT FALSE
+);
+
+-- matches (active & history)
+CREATE TABLE matches (
+  match_id UUID PRIMARY KEY,
+  players JSON, -- list of players + team config
+  state TEXT,
+  log JSON,
+  created_at TIMESTAMP,
+  finished_at TIMESTAMP
+);
+
+-- clans
+CREATE TABLE clans (
+  id SERIAL PRIMARY KEY,
+  name TEXT,
+  owner_id BIGINT,
+  password TEXT,
+  battlecoin_bank INTEGER DEFAULT 0,
+  capacity INTEGER DEFAULT 5
+);
+
+🔐 Xavfsizlik va admin funksiyalar
+
+Admin ID: 5371043130 (admin uchun maxsus komandalar: add_coins, remove_coins, start_season, broadcast, confirm_donations).
+
+Token: Bot tokenni hech qachon repo yoki ochiq joyga qoʻymaymiz. (Men tokenni javobga qoʻymadim — xavfsizlik uchun)
+
+Adminlar uchun: manual credit/debit, season control, ban user, view logs, confirm real-payments.
+
+Rate limits va spam protection: per-user command cooldown.
+
+All combat logic — server-side (clientga faqat UI events yuboriladi) — cheating oldini olish uchun.
+
+🧪 Qo‘shimcha: Matchmaking, Timers va UX
+
+Turn timer: 30 sec har action; timeout -> auto-defend yoki auto-choose.
+
+Matchmaking: skill-based (elo-like) yoki random; CPU fill — agar real user topilmasa.
+
+Battle log va replay saqlanadi — foydalanuvchi oʻz jangini qayta koʻrishi mumkin.
+
+Notifications: friend invite, clan invite, season start.
+
+🛠️ Server / Tech stack tavsiyalar
+
+Backend: Python (aiogram yoki python-telegram-bot v20) — server-side combat logic.
+
+DB: dev uchun SQLite, production — PostgreSQL.
+
+Cache / realtime: Redis (match state, locks).
+
+Hosting: VPS / Docker / Railway / Heroku (ishlab chiqish uchun).
+
+Logging: battle logs to file / DB.
+
+Scaling: match queue + worker model (celery / background tasks).
+
+🔁 Kelajak uchun takliflar (improvements)
+
+AI evolyutsiyasi: heuristic → MCTS → RL model (train qilinadigan) — CPU juda optimal qaror qabul qilsin.
+
+Balancing GUI: rarity & price balancing — A/B testing.
+
+Microtransactions: Stripe yoki boshqa gateway orqali avtomatik deposit (admin approval).
+
+Cheat detection: server-side verification + replay analysis.
+
+🧾 Qoʻllanma: qanday boshlash kerak (amaliy tartib)
+
+chars uchun characters.json (100 ta mashhur anime personajlari) tayyorla. (Men xohlasang buni avtomatik generatsiya qila olaman.)
+
+DB init script ishlatib, charsni import qil.
+
+aiogram bilan bot skeletini o‘rnat — asosiy 4 reply tugma va callback handlerlar.
+
+owned_chars yaratish (jeton yoki purchase flow).
+
+Jang engine: server-side combat simulator (heurstic CPU) va testlar.
+
+Shop / Admin funksiyalarni qo‘sh.
+
+Arena/Matchmaking va rooms/turnirlar.
+
+🔎 Misol: CPU qaror qabul qilish pseudo-algorithm (soddalashtirilgan)
+def cpu_choose_action(cpu_active, cpu_team, enemy_active):
+    # 1. check critical hp
+    if cpu_active.hp / cpu_active.max_hp < 0.30:
+        if cpu_has_heal(): return "use_heal"
+        if healthy_ally_exists(): return f"switch:{ally_id}"
+        return "defend"
+    # 2. element advantage
+    if element_advantage(cpu_active.element, enemy_active.element):
+        return "attack"
+    # 3. if can finish enemy
+    if expected_damage(cpu_active, enemy_active) >= enemy_active.hp:
+        return "attack"
+    # 4. else try skill if it yields positive EV
+    if skill_available_and_ev_positive(): return "skill"
+    # 5. fallback
+    return "attack" if cpu_active.atk > enemy_active.def * 0.9 else "defend"
