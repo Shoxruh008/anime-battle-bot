@@ -908,7 +908,7 @@
     "rarity": "Rare",
     "base_hp": 1100,
     "base_atk": 130,
-    "base_de": 90,
+    "base_def": 90,
     "base_spd": 105,
     "price": 110000
   },
