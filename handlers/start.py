@@ -1,6 +1,7 @@
+# handlers/start.py
 from telegram import Update
 from telegram.ext import ContextTypes
-from keyboards import get_main_keyboard
+from utils.keyboards import get_main_keyboard
 from database import db
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):

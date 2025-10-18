@@ -1,3 +1,4 @@
+# handlers/profile.py
 from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.ext import ContextTypes
 from utils.keyboards import get_profile_keyboard

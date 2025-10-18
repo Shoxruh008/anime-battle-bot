@@ -1,3 +1,4 @@
+# utils/keyboards.py
 from telegram import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton
 
 def get_main_keyboard():
@@ -32,18 +33,16 @@ def get_menu_keyboard():
     ])
 
 def get_card_detail_keyboard(card_id: int, current_index: int, total_cards: int):
-    return InlineKeyboardMarkup([
+    buttons = [
         [
             InlineKeyboardButton("⏪", callback_data=f"card_prev_{current_index}"),
-            InlineKeyboardButton("⚔️", callback_data=f"card_battle_{card_id}"),
+            InlineKeyboardButton(f"{current_index + 1}/{total_cards}", callback_data="card_info"),
             InlineKeyboardButton("⏩", callback_data=f"card_next_{current_index}")
         ],
-        [
-            InlineKeyboardButton("⬆️ Kuchaytirish", callback_data=f"card_upgrade_{card_id}"),
-            InlineKeyboardButton("💰 Sotish", callback_data=f"card_sell_{card_id}")
-        ],
         [InlineKeyboardButton("🔙 Orqaga", callback_data="back_to_cards")]
-    ])
+    ]
+    
+    return InlineKeyboardMarkup(buttons)
 
 def get_arena_keyboard():
     return InlineKeyboardMarkup([
@@ -77,7 +76,10 @@ def get_pagination_keyboard(page: int, total_pages: int, prefix: str):
     buttons = []
     if page > 0:
         buttons.append(InlineKeyboardButton("⬅️ Oldingi", callback_data=f"{prefix}_page_{page-1}"))
+    
+    buttons.append(InlineKeyboardButton(f"{page + 1}/{total_pages}", callback_data=f"{prefix}_info"))
+    
     if page < total_pages - 1:
         buttons.append(InlineKeyboardButton("Keyingi ➡️", callback_data=f"{prefix}_page_{page+1}"))
     
-    return InlineKeyboardButton([buttons]) if buttons else None
+    return InlineKeyboardMarkup([buttons])

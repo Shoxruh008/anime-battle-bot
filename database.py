@@ -1,3 +1,4 @@
+# database.py
 import sqlite3
 import json
 import os
@@ -20,7 +21,7 @@ class Database:
         conn = self.get_connection()
         cursor = conn.cursor()
         
-        # Users jadvali
+        # Users jadvali - TO'G'RILANDI (keys -> keys_count)
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS users (
                 user_id INTEGER PRIMARY KEY,
@@ -30,7 +31,7 @@ class Database:
                 anicoin INTEGER DEFAULT 100,
                 battlecoin INTEGER DEFAULT 0,
                 jeton INTEGER DEFAULT 1,
-                keys INTEGER DEFAULT 0,
+                keys_count INTEGER DEFAULT 0,
                 total_matches INTEGER DEFAULT 0,
                 wins INTEGER DEFAULT 0,
                 referral_code TEXT,
@@ -39,7 +40,7 @@ class Database:
             )
         ''')
         
-        # Characters template jadvali
+        # Characters template jadvali - TO'G'RILANDI (price_anicoin -> price)
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS chars (
                 id INTEGER PRIMARY KEY,
@@ -50,7 +51,7 @@ class Database:
                 base_atk INTEGER,
                 base_def INTEGER,
                 base_spd INTEGER,
-                price_anicoin INTEGER,
+                price INTEGER,
                 image_url TEXT,
                 skills TEXT
             )
@@ -145,18 +146,18 @@ class Database:
                 
                 cursor.execute('''
                     INSERT OR REPLACE INTO chars 
-                    (id, name, element, rarity, base_hp, base_atk, base_def, base_spd, price_anicoin, image_url, skills)
+                    (id, name, element, rarity, base_hp, base_atk, base_def, base_spd, price, image_url, skills)
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ''', (
                     char_data['id'], 
                     char_data['name'], 
-                    char_data['element'].lower(),  # elementni kichik harfga o'tkazish
-                    char_data['rarity'].lower(),   # rarityni kichik harfga o'tkazish
+                    char_data['element'].lower(),
+                    char_data['rarity'].lower(),
                     char_data['base_hp'], 
                     char_data['base_atk'],
                     char_data['base_def'], 
                     char_data['base_spd'], 
-                    char_data.get('price', 1000),  # default price
+                    char_data.get('price', 1000),
                     char_data.get('image_url', ''), 
                     skills_json
                 ))
@@ -167,7 +168,7 @@ class Database:
         except Exception as e:
             print(f"❌ Characters yuklashda xatolik: {e}")
     
-    # USER METHODS
+    # USER METHODS - TO'G'RILANDI (keys_count)
     def get_user(self, user_id: int) -> Optional[User]:
         conn = self.get_connection()
         cursor = conn.cursor()
@@ -185,7 +186,7 @@ class Database:
                 anicoin=row[4], 
                 battlecoin=row[5], 
                 jeton=row[6],
-                keys=row[7], 
+                keys=row[7],  # keys_count -> keys
                 total_matches=row[8], 
                 wins=row[9], 
                 referral_code=row[10],
@@ -216,9 +217,17 @@ class Database:
         updates = []
         params = []
         
+        currency_mapping = {
+            'anicoin': 'anicoin',
+            'battlecoin': 'battlecoin', 
+            'jeton': 'jeton',
+            'keys': 'keys_count'  # keys -> keys_count
+        }
+        
         for currency, value in currencies.items():
             if value != 0:
-                updates.append(f"{currency} = {currency} + ?")
+                db_column = currency_mapping.get(currency, currency)
+                updates.append(f"{db_column} = {db_column} + ?")
                 params.append(value)
         
         if updates:
@@ -243,7 +252,7 @@ class Database:
         conn.commit()
         conn.close()
     
-    # CHARACTER METHODS
+    # CHARACTER METHODS - TO'G'RILANDI (price_anicoin -> price)
     def get_character(self, char_id: int) -> Optional[Character]:
         conn = self.get_connection()
         cursor = conn.cursor()

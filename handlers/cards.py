@@ -1,3 +1,4 @@
+# handlers/cards.py
 from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.ext import ContextTypes
 from datetime import datetime, timedelta
@@ -20,7 +21,10 @@ Quyidagi usullardan biri bilan yangi kartalar olishingiz mumkin:
 💡 **Maslahat:** Har kuni jeton olishni unutmang!
 """
     
-    await update.message.reply_text(text, reply_markup=get_card_acquisition_keyboard())
+    if update.message:
+        await update.message.reply_text(text, reply_markup=get_card_acquisition_keyboard())
+    else:
+        await update.callback_query.edit_message_text(text, reply_markup=get_card_acquisition_keyboard())
 
 async def claim_jeton(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
@@ -91,11 +95,12 @@ async def show_cards_page(query, context, all_characters: list, page: int, per_p
     
     text = f"🛒 **Karta sotib olish**\n\n"
     text += f"📄 Sahifa {page + 1}/{total_pages}\n\n"
+    text += "Quyidagi kartalardan birini tanlang:\n\n"
     
     keyboard_buttons = []
     
     for char in page_characters:
-        char_text = f"🎴 {char.name} - {char.price_anicoin} 🪙"
+        char_text = f"🎴 {char.name} - {char.price} 🪙"
         keyboard_buttons.append([
             InlineKeyboardButton(char_text, callback_data=f"buy_char_{char.id}")
         ])
@@ -104,6 +109,9 @@ async def show_cards_page(query, context, all_characters: list, page: int, per_p
     pagination_row = []
     if page > 0:
         pagination_row.append(InlineKeyboardButton("⬅️ Oldingi", callback_data=f"buy_page_{page-1}"))
+    
+    pagination_row.append(InlineKeyboardButton(f"{page + 1}/{total_pages}", callback_data="buy_info"))
+    
     if page < total_pages - 1:
         pagination_row.append(InlineKeyboardButton("Keyingi ➡️", callback_data=f"buy_page_{page+1}"))
     
@@ -121,11 +129,18 @@ async def show_my_cards(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_cards = db.get_user_characters(user_id)
     
     if not user_cards:
-        await update.message.reply_text(
-            "📭 **Sizda hali kartalar mavjud emas!**\n\n"
-            "«Karta olish» bo'limiga o'tib, birinchi kartangizni oling! 🎴",
-            parse_mode='Markdown'
-        )
+        if update.message:
+            await update.message.reply_text(
+                "📭 **Sizda hali kartalar mavjud emas!**\n\n"
+                "«Karta olish» bo'limiga o'tib, birinchi kartangizni oling! 🎴",
+                parse_mode='Markdown'
+            )
+        else:
+            await update.callback_query.edit_message_text(
+                "📭 **Sizda hali kartalar mavjud emas!**\n\n"
+                "«Karta olish» bo'limiga o'tib, birinchi kartangizni oling! 🎴",
+                parse_mode='Markdown'
+            )
         return
     
     # Birinchi kartani ko'rsatish
@@ -133,7 +148,10 @@ async def show_my_cards(update: Update, context: ContextTypes.DEFAULT_TYPE):
     char_template = db.get_character(first_card.char_id)
     
     if not char_template:
-        await update.message.reply_text("❌ Xatolik: Karta ma'lumotlari topilmadi")
+        if update.message:
+            await update.message.reply_text("❌ Xatolik: Karta ma'lumotlari topilmadi")
+        else:
+            await update.callback_query.edit_message_text("❌ Xatolik: Karta ma'lumotlari topilmadi")
         return
     
     card_text = format_character_stats(char_template, first_card)
@@ -141,7 +159,10 @@ async def show_my_cards(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     keyboard = get_card_detail_keyboard(first_card.id, 0, len(user_cards))
     
-    await update.message.reply_text(card_text, reply_markup=keyboard, parse_mode='Markdown')
+    if update.message:
+        await update.message.reply_text(card_text, reply_markup=keyboard, parse_mode='Markdown')
+    else:
+        await update.callback_query.edit_message_text(card_text, reply_markup=keyboard, parse_mode='Markdown')
 
 async def handle_card_callbacks(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
@@ -153,18 +174,26 @@ async def handle_card_callbacks(update: Update, context: ContextTypes.DEFAULT_TY
     if data == "back_to_card_acquisition":
         await show_card_acquisition(update, context)
     
-    elif data == "back_to_cards":
-        await show_my_cards(update, context)
+    elif data == "buy_cards":
+        await show_buy_cards(update, context)
+    
+    elif data.startswith("buy_page_"):
+        page = int(data.split("_")[2])
+        all_characters = db.get_all_characters()
+        await show_cards_page(query, context, all_characters, page, 5)
+    
+    elif data.startswith("buy_char_"):
+        char_id = int(data.split("_")[2])
+        await purchase_character(query, context, char_id)
     
     elif data.startswith("card_prev_") or data.startswith("card_next_"):
-        # Karta navigatsiyasi
-        direction, index = data.split("_")[1], int(data.split("_")[2])
+        current_index = int(data.split("_")[2])
         user_cards = db.get_user_characters(user_id)
         
-        if direction == "prev":
-            new_index = max(0, index - 1)
-        else:  # next
-            new_index = min(len(user_cards) - 1, index + 1)
+        if data.startswith("card_prev_"):
+            new_index = max(0, current_index - 1)
+        else:
+            new_index = min(len(user_cards) - 1, current_index + 1)
         
         card = user_cards[new_index]
         char_template = db.get_character(card.char_id)
@@ -176,50 +205,39 @@ async def handle_card_callbacks(update: Update, context: ContextTypes.DEFAULT_TY
             keyboard = get_card_detail_keyboard(card.id, new_index, len(user_cards))
             await query.edit_message_text(card_text, reply_markup=keyboard, parse_mode='Markdown')
     
-    elif data.startswith("buy_char_"):
-        # Karta sotib olish
-        char_id = int(data.split("_")[2])
-        await purchase_character(query, context, char_id)
-    
-    elif data.startswith("buy_page_"):
-        # Katalog sahifasi
-        page = int(data.split("_")[2])
-        all_characters = db.get_all_characters()
-        await show_cards_page(query, context, all_characters, page, 5)
+    elif data == "back_to_cards":
+        await show_my_cards(update, context)
 
-async def purchase_character(query, context: ContextTypes.DEFAULT_TYPE, char_id: int):
+async def purchase_character(query, context, char_id: int):
     user_id = query.from_user.id
     user = db.get_user(user_id)
     character = db.get_character(char_id)
     
     if not character:
-        await query.answer("❌ Karta topilmadi", show_alert=True)
+        await query.edit_message_text("❌ Xatolik: Karta topilmadi")
         return
     
-    if user.anicoin < character.price_anicoin:
-        await query.answer(
-            f"❌ Yetarli Anicoin mavjud emas! Sizda: {user.anicoin} 🪙, Kerak: {character.price_anicoin} 🪙",
-            show_alert=True
+    if user.anicoin < character.price:
+        await query.edit_message_text(
+            f"❌ **Yetarli Anicoin mavjud emas!**\n\n"
+            f"Karta narxi: {character.price} 🪙\n"
+            f"Sizning balansingiz: {user.anicoin} 🪙\n\n"
+            f"Qo'shimcha Anicoin olish uchun magazinga tashrif buyuring!",
+            parse_mode='Markdown'
         )
         return
     
     # Karta sotib olish
+    db.update_user_currency(user_id, anicoin=-character.price)
     success = db.add_character_to_user(user_id, char_id, "purchase")
     
     if success:
-        # Anicoin hisobidan yechish
-        db.update_user_currency(user_id, anicoin=-character.price_anicoin)
-        
-        await query.answer(f"✅ {character.name} sotib olindi!", show_alert=True)
-        
-        # Yangi balansni ko'rsatish
-        user = db.get_user(user_id)
         await query.edit_message_text(
-            f"🎉 **Tabriklaymiz!**\n\n"
-            f"🎴 **{character.name}** kartasini sotib oldingiz!\n\n"
-            f"💰 Qolgan balans: `{user.anicoin}` Anicoin 🪙\n\n"
-            f"Endi «Mening kartalarim» bo'limida yangi kartangizni ko'rishingiz mumkin!",
+            f"✅ **{character.name} kartasi sotib olindi!**\n\n"
+            f"💳 Xarajat: {character.price} 🪙\n"
+            f"💰 Qolgan balans: {user.anicoin - character.price} 🪙\n\n"
+            f"Kartangizni «Mening kartalarim» bo'limida ko'rishingiz mumkin! 🎴",
             parse_mode='Markdown'
         )
     else:
-        await query.answer("❌ Xatolik: Karta qo'shilmadi", show_alert=True)
+        await query.edit_message_text("❌ Xatolik: Karta sotib olishda xatolik yuz berdi")

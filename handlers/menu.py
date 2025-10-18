@@ -1,208 +1,226 @@
+# handlers/cards.py
 from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.ext import ContextTypes
-from utils.keyboards import get_menu_keyboard, get_arena_keyboard, get_clan_keyboard, get_shop_keyboard
+from datetime import datetime, timedelta
+from utils.keyboards import (
+    get_card_acquisition_keyboard, get_card_detail_keyboard,
+    get_pagination_keyboard
+)
+from utils.helpers import format_character_stats, format_time_delta
 from database import db
 
-async def show_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    menu_text = """
-🧭 **Menyu**
+async def show_card_acquisition(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    text = """
+🎴 **Karta olish**
 
-Quyidagi bo'limlardan birini tanlang:
+Quyidagi usullardan biri bilan yangi kartalar olishingiz mumkin:
 
-👥 **Komandam** - Jangovar komandalaringizni boshqaring
-🛡️ **Klan** - Klan tizimi
-🛒 **Magazin** - Valyutalar sotib olish
-🏆 **Reyting** - Eng yaxshi o'yinchilar
-🎯 **Vazifalar** - Kunlik va haftalik vazifalar
-📢 **Referal** - Do'stlaringizni taklif qiling
-⚔️ **Arena** - Janglar va turnirlar
+🎫 **Jeton olish** - Har 24 soatda 1 marta bepul karta olish
+🛒 **Karta sotib olish** - Anicoin bilan kartalar sotib olish
+
+💡 **Maslahat:** Har kuni jeton olishni unutmang!
 """
     
-    await update.message.reply_text(menu_text, reply_markup=get_menu_keyboard(), parse_mode='Markdown')
+    await update.message.reply_text(text, reply_markup=get_card_acquisition_keyboard())
 
-async def handle_menu_callbacks(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def claim_jeton(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
     
-    data = query.data
-    
-    if data == "menu_back":
-        await show_menu(update, context)
-    
-    elif data == "team_management":
-        await show_team_management(query, context)
-    
-    elif data == "clan_menu":
-        await show_clan_menu(query, context)
-    
-    elif data == "shop_menu":
-        await show_shop_menu(query, context)
-    
-    elif data == "arena_menu":
-        await show_arena_menu(query, context)
-    
-    elif data == "leaderboard":
-        await show_leaderboard(query, context)
-    
-    elif data == "quests":
-        await show_quests(query, context)
-    
-    elif data == "referral":
-        await show_referral(query, context)
-
-async def show_team_management(query, context: ContextTypes.DEFAULT_TYPE):
     user_id = query.from_user.id
-    teams = db.get_user_teams(user_id)
+    user = db.get_user(user_id)
     
-    text = "👥 **Komanda boshqaruvi**\n\n"
+    if not user:
+        await query.edit_message_text("❌ Xatolik: Foydalanuvchi topilmadi")
+        return
     
-    if not teams:
-        text += "📭 Sizda hali hech qanday komanda saqlanmagan.\n\n"
-    else:
-        text += "💾 **Saqangan komandalaringiz:**\n"
-        for team in teams:
-            status = "✅ Faol" if team.is_active else "❌ Nofaol"
-            text += f"• {team.name} - {status}\n"
-        text += "\n"
+    # 24 soatlik cooldown tekshirish
+    if user.last_jeton_claim and datetime.now() - user.last_jeton_claim < timedelta(hours=24):
+        next_claim = user.last_jeton_claim + timedelta(hours=24)
+        time_left = next_claim - datetime.now()
+        
+        await query.edit_message_text(
+            f"⏳ **Jeton olish uchun {format_time_delta(time_left)} qoldi!**\n\n"
+            f"🔁 Keyingi marta: {next_claim.strftime('%Y-%m-%d %H:%M')}",
+            parse_mode='Markdown'
+        )
+        return
     
-    text += "Komanda yaratish yoki mavjud komandani tahrirlash uchun quyidagi tugmalardan foydalaning."
+    # Jeton berish
+    db.update_user_currency(user_id, jeton=1)
+    
+    # Last claim vaqtini yangilash
+    conn = db.get_connection()
+    cursor = conn.cursor()
+    cursor.execute(
+        'UPDATE users SET last_jeton_claim = ? WHERE user_id = ?', 
+        (datetime.now(), user_id)
+    )
+    conn.commit()
+    conn.close()
+    
+    # Yangi user ma'lumotlari
+    user = db.get_user(user_id)
+    
+    await query.edit_message_text(
+        f"✅ **+1 Jeton qo'shildi!**\n\n"
+        f"🎫 Jetonlar soni: `{user.jeton}`\n\n"
+        f"Endi yangi kartalar olishingiz mumkin! 🎴",
+        parse_mode='Markdown'
+    )
+
+async def show_buy_cards(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+    
+    user_id = query.from_user.id
+    user = db.get_user(user_id)
+    
+    # Barcha kartalarni olish
+    all_characters = db.get_all_characters()
+    page = 0
+    characters_per_page = 5
+    
+    await show_cards_page(query, context, all_characters, page, characters_per_page)
+
+async def show_cards_page(query, context, all_characters: list, page: int, per_page: int):
+    start_idx = page * per_page
+    end_idx = start_idx + per_page
+    page_characters = all_characters[start_idx:end_idx]
+    
+    total_pages = (len(all_characters) + per_page - 1) // per_page
+    
+    text = f"🛒 **Karta sotib olish**\n\n"
+    text += f"📄 Sahifa {page + 1}/{total_pages}\n\n"
     
     keyboard_buttons = []
     
-    for team in teams:
+    for char in page_characters:
+        char_text = f"🎴 {char.name} - {char.price} 🪙"
         keyboard_buttons.append([
-            InlineKeyboardButton(f"👥 {team.name}", callback_data=f"team_view_{team.id}")
+            InlineKeyboardButton(char_text, callback_data=f"buy_char_{char.id}")
         ])
     
-    keyboard_buttons.extend([
-        [InlineKeyboardButton("➕ Yangi komanda", callback_data="team_create")],
-        [InlineKeyboardButton("🔙 Orqaga", callback_data="menu_back")]
-    ])
+    # Pagination tugmalari
+    pagination_row = []
+    if page > 0:
+        pagination_row.append(InlineKeyboardButton("⬅️ Oldingi", callback_data=f"buy_page_{page-1}"))
+    if page < total_pages - 1:
+        pagination_row.append(InlineKeyboardButton("Keyingi ➡️", callback_data=f"buy_page_{page+1}"))
+    
+    if pagination_row:
+        keyboard_buttons.append(pagination_row)
+    
+    keyboard_buttons.append([InlineKeyboardButton("🔙 Orqaga", callback_data="back_to_card_acquisition")])
     
     keyboard = InlineKeyboardMarkup(keyboard_buttons)
     
     await query.edit_message_text(text, reply_markup=keyboard, parse_mode='Markdown')
 
-async def show_clan_menu(query, context: ContextTypes.DEFAULT_TYPE):
+async def show_my_cards(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.effective_user.id
+    user_cards = db.get_user_characters(user_id)
+    
+    if not user_cards:
+        await update.message.reply_text(
+            "📭 **Sizda hali kartalar mavjud emas!**\n\n"
+            "«Karta olish» bo'limiga o'tib, birinchi kartangizni oling! 🎴",
+            parse_mode='Markdown'
+        )
+        return
+    
+    # Birinchi kartani ko'rsatish
+    first_card = user_cards[0]
+    char_template = db.get_character(first_card.char_id)
+    
+    if not char_template:
+        await update.message.reply_text("❌ Xatolik: Karta ma'lumotlari topilmadi")
+        return
+    
+    card_text = format_character_stats(char_template, first_card)
+    card_text += f"\n📄 1/{len(user_cards)}"
+    
+    keyboard = get_card_detail_keyboard(first_card.id, 0, len(user_cards))
+    
+    await update.message.reply_text(card_text, reply_markup=keyboard, parse_mode='Markdown')
+
+async def handle_card_callbacks(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+    
+    data = query.data
     user_id = query.from_user.id
-    user_clan = db.get_user_clan(user_id)
     
-    text = "🛡️ **Klan tizimi**\n\n"
+    if data == "back_to_card_acquisition":
+        await show_card_acquisition(update, context)
     
-    if user_clan:
-        text += f"🎯 **Sizning klaningiz:** {user_clan.name}\n"
-        text += f"👑 Egasi: {user_clan.owner_id}\n"
-        text += f"👥 A'zolar: {user_clan.capacity} ta\n"
-        text += f"🏦 Bank: {user_clan.battlecoin_bank} battlecoin\n\n"
+    elif data == "back_to_cards":
+        await show_my_cards(update, context)
+    
+    elif data.startswith("card_prev_") or data.startswith("card_next_"):
+        # Karta navigatsiyasi
+        direction, index = data.split("_")[1], int(data.split("_")[2])
+        user_cards = db.get_user_characters(user_id)
+        
+        if direction == "prev":
+            new_index = max(0, index - 1)
+        else:  # next
+            new_index = min(len(user_cards) - 1, index + 1)
+        
+        card = user_cards[new_index]
+        char_template = db.get_character(card.char_id)
+        
+        if char_template:
+            card_text = format_character_stats(char_template, card)
+            card_text += f"\n📄 {new_index + 1}/{len(user_cards)}"
+            
+            keyboard = get_card_detail_keyboard(card.id, new_index, len(user_cards))
+            await query.edit_message_text(card_text, reply_markup=keyboard, parse_mode='Markdown')
+    
+    elif data.startswith("buy_char_"):
+        # Karta sotib olish
+        char_id = int(data.split("_")[2])
+        await purchase_character(query, context, char_id)
+    
+    elif data.startswith("buy_page_"):
+        # Katalog sahifasi
+        page = int(data.split("_")[2])
+        all_characters = db.get_all_characters()
+        await show_cards_page(query, context, all_characters, page, 5)
+
+async def purchase_character(query, context: ContextTypes.DEFAULT_TYPE, char_id: int):
+    user_id = query.from_user.id
+    user = db.get_user(user_id)
+    character = db.get_character(char_id)
+    
+    if not character:
+        await query.answer("❌ Karta topilmadi", show_alert=True)
+        return
+    
+    if user.anicoin < character.price:
+        await query.answer(
+            f"❌ Yetarli Anicoin mavjud emas! Sizda: {user.anicoin} 🪙, Kerak: {character.price} 🪙",
+            show_alert=True
+        )
+        return
+    
+    # Karta sotib olish
+    success = db.add_character_to_user(user_id, char_id, "purchase")
+    
+    if success:
+        # Anicoin hisobidan yechish
+        db.update_user_currency(user_id, anicoin=-character.price)
+        
+        await query.answer(f"✅ {character.name} sotib olindi!", show_alert=True)
+        
+        # Yangi balansni ko'rsatish
+        user = db.get_user(user_id)
+        await query.edit_message_text(
+            f"🎉 **Tabriklaymiz!**\n\n"
+            f"🎴 **{character.name}** kartasini sotib oldingiz!\n\n"
+            f"💰 Qolgan balans: `{user.anicoin}` Anicoin 🪙\n\n"
+            f"Endi «Mening kartalarim» bo'limida yangi kartangizni ko'rishingiz mumkin!",
+            parse_mode='Markdown'
+        )
     else:
-        text += "📭 Siz hali hech qanday klanga a'zo emassiz.\n\n"
-    
-    text += "Klan yaratish yoki mavjud klanga qo'shilish uchun quyidagi tugmalardan foydalaning."
-    
-    await query.edit_message_text(text, reply_markup=get_clan_keyboard(), parse_mode='Markdown')
-
-async def show_shop_menu(query, context: ContextTypes.DEFAULT_TYPE):
-    user_id = query.from_user.id
-    user = db.get_user(user_id)
-    
-    text = f"""
-🛒 **Magazin**
-
-💰 **Joriy balansingiz:**
-• Anicoin: `{user.anicoin}` 🪙
-• Battlecoin: `{user.battlecoin}` ⚔️
-• Kalitlar: `{user.keys}` 🔑
-
-💳 **Sotib olish uchun valyutani tanlang:**
-
-🪙 **Anicoin** - Asosiy o'yin valyutasi
-⚔️ **Battlecoin** - Premium janglar valyutasi  
-🔑 **Kalitlar** - Maxsus sandiqlarni ochish
-
-💬 *Valyuta sotib olish uchun admin (@) bilan bog'laning*
-"""
-    
-    await query.edit_message_text(text, reply_markup=get_shop_keyboard(), parse_mode='Markdown')
-
-async def show_arena_menu(query, context: ContextTypes.DEFAULT_TYPE):
-    text = """
-⚔️ **Arena**
-
-Jang maydoniga xush kelibsiz! Quyidagi jang turlaridan birini tanlang:
-
-🤖 **CPU bilan jang** - Bot bilan mashq jangi
-👤 **Real jang** - Haqiqiy o'yinchi bilan jang
-👥 **Xona ochish** - Do'stlaringiz bilan xususiy jang
-🚪 **Xonaga kirish** - Mavjud xonaga qo'shilish
-🏆 **Turnir** - Ko'p o'yinchi turnirlari
-🐉 **Boss jangi** - Kuchli boss bilan jang
-
-💥 Janglar orqali tajriba va resurslar toping!
-"""
-    
-    await query.edit_message_text(text, reply_markup=get_arena_keyboard(), parse_mode='Markdown')
-
-async def show_leaderboard(query, context: ContextTypes.DEFAULT_TYPE):
-    text = """
-🏆 **Reyting**
-
-🚧 *Reyting tizimi hozircha ishlab chiqilmoqda. Tez orada qo'shiladi!*
-
-📊 Kelgusi yangilanishlarda quyidagi reytinglar bo'ladi:
-• Top 10 gʻalaba
-• Mavsumiy reyting
-• Top donatorlar
-"""
-    
-    keyboard = InlineKeyboardMarkup([
-        [InlineKeyboardButton("🔙 Orqaga", callback_data="menu_back")]
-    ])
-    
-    await query.edit_message_text(text, reply_markup=keyboard, parse_mode='Markdown')
-
-async def show_quests(query, context: ContextTypes.DEFAULT_TYPE):
-    text = """
-🎯 **Vazifalar**
-
-🚧 *Vazifalar tizimi hozircha ishlab chiqilmoqda. Tez orada qo'shiladi!*
-
-📝 Kelgusi yangilanishlarda quyidagi vazifalar bo'ladi:
-• Kunlik vazifalar
-• Haftalik vazifalar
-• Maxsus tadbir vazifalari
-"""
-    
-    keyboard = InlineKeyboardMarkup([
-        [InlineKeyboardButton("🔙 Orqaga", callback_data="menu_back")]
-    ])
-    
-    await query.edit_message_text(text, reply_markup=keyboard, parse_mode='Markdown')
-
-async def show_referral(query, context: ContextTypes.DEFAULT_TYPE):
-    user_id = query.from_user.id
-    user = db.get_user(user_id)
-    
-    text = f"""
-📢 **Referal tizimi**
-
-🎁 Do'stlaringizni taklif qiling va mukofotlar oling!
-
-🔗 **Sizning referal havolangiz:**
-`https://t.me/your_bot_username?start={user.referral_code}`
-
-📋 **Sizning referal kodingiz:**
-`{user.referral_code}`
-
-🏆 **Mukofotlar:**
-• Har bir taklif qilingan do'st uchun: 50 Anicoin 🪙
-• Do'stingizning birinchi g'alabasi uchun: 100 Anicoin 🪙
-
-💡 Do'stlaringiz havola orqali botga kirib, /start bosishlari kifoya!
-"""
-    
-    keyboard = InlineKeyboardMarkup([
-        [InlineKeyboardButton("🔗 Havolani ulashish", switch_inline_query=f"Botga qo'shiling! {user.referral_code}")],
-        [InlineKeyboardButton("🔙 Orqaga", callback_data="menu_back")]
-    ])
-    
-    await query.edit_message_text(text, reply_markup=keyboard, parse_mode='Markdown')
+        await query.answer("❌ Xatolik: Karta qo'shilmadi", show_alert=True)

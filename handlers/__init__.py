@@ -1,3 +1,4 @@
+# handlers/__init__.py
 from .start import start
 from .profile import show_profile, handle_profile_callbacks
 from .cards import (
