@@ -464,3 +464,5 @@ class Database:
                 description=row[7]
             )
         return None
+# Create the database instance
+db = Database("data/anime_battle.db")

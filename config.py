@@ -7,6 +7,9 @@ load_dotenv()
 # Bot tokeni - TO'G'RILANDI
 BOT_TOKEN = os.getenv('BOT_TOKEN')  # .env faylida BOT_TOKEN=7995099850:AAFaan-VTbWJtuDKVLQoL4Yk4nLVCz7jxgU
 
+# Bot tokeni
+BOT_TOKEN = os.getenv('BOT_TOKEN')
+
 # Admin ID
 ADMIN_ID = 5371043130
 

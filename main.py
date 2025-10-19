@@ -4,10 +4,7 @@ import logging
 from telegram.ext import Application, CommandHandler, MessageHandler, CallbackQueryHandler, filters
 
 from config import BOT_TOKEN, ADMIN_ID
-from database import Database
-
-# Database yaratish
-db = Database("data/anime_battle.db")
+from database import db
 
 from handlers import (
     start, show_profile, handle_profile_callbacks,

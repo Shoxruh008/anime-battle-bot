@@ -1,0 +1,247 @@
+# 🌀 Anime Battle Bot
+
+Bu loyiha — **Anime Battle Telegram Bot**, `Python` va `aiogram` yordamida ishlab chiqilgan aqlli jang o‘yini botidir.
+Foydalanuvchilar o‘z anime personajlari bilan **CPU** yoki **real foydalanuvchilar**ga qarshi jang qilib, **Anicoin**, **Battlecoin** va **Jeton** to‘plashi mumkin.
+
+---
+
+## ⚙️ O‘rnatish
+
+1. Python 3.10+ o‘rnatilganligini tekshiring.
+
+2. Terminalda quyidagilarni kiriting:
+
+   ```bash
+   git clone https://github.com/username/anime-battle-bot.git
+   cd anime-battle-bot
+   pip install -r requirements.txt
+   ```
+
+3. `.env` fayl yarating va quyidagilarni yozing:
+
+   ```
+   BOT_TOKEN=7995099850:AAFaan-VTbWJtuDKVLQoL4Yk4nLVCz7jxgU
+   ADMIN_ID=5371043130
+   ```
+
+4. Botni ishga tushiring:
+
+   ```bash
+   python bot.py
+   ```
+
+---
+
+## 🎮 Asosiy menyular
+
+Botga kirgan foydalanuvchiga 4 ta asosiy tugma chiqadi:
+
+* **🃏 Karta olish** — yangi karta olish usullari:
+
+  * **Jeton orqali karta olish** (har 24 soatda 1 marta)
+  * **Anicoin orqali karta sotib olish**
+* **📦 Mening kartalarim** — sizdagi barcha personajlarni ko‘rish, kuchaytirish yoki sotish.
+* **⚙️ Menyu** — komandam, klan, magazin, reyting, vazifalar, referal, arena.
+* **👤 Profil** — foydalanuvchi ma’lumotlari va statistikasi.
+
+---
+
+## 👤 Profil bo‘limi
+
+Profilda quyidagi ma’lumotlar chiqadi:
+
+* **Nickname**
+* **User ID**
+* **Premium:** Aktiv yoki Noaktiv
+* **Start sanasi**
+* **Balans:**
+
+  * `Anicoin` — asosiy valyuta
+  * `Battlecoin` — Premium janglar uchun
+  * `Jeton` — har 24 soatda 1 ta olinadi
+* **Keys:** maxsus predmetlar
+* **Kartalar soni:**
+
+  * Oddiy kartalar (jangda qatnashadi)
+  * Jeton kartalari (faqat upgrade uchun)
+* **Jang statistikasi:** jami jang va g‘alabalar soni.
+
+---
+
+## ⚔️ Jang tizimi
+
+### 🎯 Jang bosqichlari:
+
+1. Foydalanuvchi jang turini tanlaydi: `CPU` yoki `Real`.
+2. Har ikkala tomon o‘z **komandasini** tanlaydi (3 yoki 5ta personaj).
+3. Kim birinchi yurishini **random** aniqlanadi.
+4. O‘yin davomida:
+
+   * Foydalanuvchi **Attack**, **Defend**, yoki **Special** tanlaydi.
+   * CPU esa **aqlli tizim asosida** javob beradi (faqat random emas).
+   * Attack va Defense kuchlari `characters.json`dagi statistikaga asoslanadi.
+5. Yutgan foydalanuvchi:
+
+   * `Anicoin` oladi (raqib kuchiga qarab miqdor belgilanadi)
+   * Premium jangda yutgan bo‘lsa — `Battlecoin` ham oladi.
+   * Yutqazgan — `Anicoin`ini yo‘qotadi.
+
+---
+
+## 💰 Valyuta tizimi
+
+| Turi           | Tavsif                  | Qanday olinadi                |
+| -------------- | ----------------------- | ----------------------------- |
+| **Anicoin**    | Asosiy o‘yin valyutasi  | Jang, vazifa, referal         |
+| **Battlecoin** | Premium valyuta         | Premium jangda ishtirok etish |
+| **Jeton**      | Karta olish uchun token | 24 soatda 1 ta olish mumkin   |
+
+---
+
+## 🛒 Magazin
+
+* **Anicoin** yoki **Battlecoin**ni real pulga sotib olish mumkin.
+* To‘lov admin bilan aloqada tasdiqlanadi.
+* Admin ID: **5371043130**
+
+---
+
+## 🧱 Klan tizimi
+
+* Har bir foydalanuvchi **klan yaratishi** yoki **mavjud klanga qo‘shilishi** mumkin.
+* Yaratish narxi: `Battlecoin`.
+* Maksimal 5 ta a’zo (joy ochish uchun qo‘shimcha to‘lov kerak).
+* Klan ID va parol bilan himoyalangan.
+* Klan egasi yangi a’zolarni ID orqali qo‘sha oladi.
+
+---
+
+## 🏆 Reyting tizimi
+
+Reyting bo‘limida:
+
+* Eng ko‘p g‘alaba qilganlar
+* Eng ko‘p donat qilganlar
+* Sezondagi top jangchilar chiqadi.
+
+---
+
+## 🧩 Arena
+
+Arena 4 bo‘limdan iborat:
+
+* **Jang (CPU yoki Real)**
+* **Xona ochish** — kod orqali do‘st bilan jang
+* **Xonaga kirish** — mavjud xonaga kirish
+* **Turnir** — turnir tizimi
+* **Boss** — kuchli AI raqib bilan jang (ishlab chiqilmoqda)
+
+---
+
+## 🧠 Aqlli CPU tizimi
+
+CPU raqib:
+
+* Sizning harakatlaringizni tahlil qiladi
+* Oldingi yurishlarga qarab strategiya tanlaydi
+* Himoya yoki hujumni kuchli kombinatsiya bilan bajaradi
+* Har bir jangda takrorlanmas natija beradi.
+
+---
+
+## 🔒 Admin funksiyalari
+
+* Yangi sezon yaratish
+* Reytingni yangilash
+* Yangi personajlar qo‘shish yoki statistikani o‘zgartirish
+* Pullik to‘lovlarni boshqarish
+
+---
+
+## 📁 Fayl tuzilmasi
+
+```
+📦 anime-battle-bot
+├── bot.py
+├── handlers/
+│   ├── start.py
+│   ├── battle.py
+│   ├── profile.py
+│   ├── shop.py
+│   └── clan.py
+├── data/
+│   ├── characters.json
+│   └── users.json
+├── utils/
+│   ├── battle_logic.py
+│   ├── cpu_ai.py
+│   └── helpers.py
+└── README.md
+```
+
+---
+
+## 💾 characters.json (120 ta personaj)
+
+Har bir personaj quyidagi formatda saqlanadi:
+
+```json
+{
+  "id": 1,
+  "name": "Naruto Uzumaki",
+  "anime": "Naruto",
+  "element": "Wind",
+  "attack": 82,
+  "defense": 70,
+  "special": 88,
+  "price": 895,
+  "rarity": "Epic"
+}
+```
+
+👉 Quyida 120 ta mashhur personajlar (balanslangan qiymatlar bilan):
+
+> [**To‘liq characters.json faylini yuklash uchun bu qism README oxirida joylashtiriladi (120 personaj)**]
+
+---
+
+## 🧩 Kod namunasi (aiogram)
+
+```python
+from aiogram import Bot, Dispatcher, executor, types
+import json, random
+
+bot = Bot(token="7995099850:AAFaan-VTbWJtuDKVLQoL4Yk4nLVCz7jxgU")
+dp = Dispatcher(bot)
+
+@dp.message_handler(commands=['start'])
+async def start_game(msg: types.Message):
+    await msg.answer(
+        "🌀 Anime Battle Bot'ga xush kelibsiz!\n\n"
+        "Tanlang:\n"
+        "🃏 Karta olish\n📦 Mening kartalarim\n⚙️ Menyu\n👤 Profil"
+    )
+
+@dp.message_handler(lambda m: m.text == "🃏 Karta olish")
+async def get_card(msg: types.Message):
+    with open("data/characters.json", "r") as f:
+        data = json.load(f)
+    card = random.choice(data)
+    await msg.answer(f"Sizga {card['name']} ({card['anime']}) chiqdi!\nAttack: {card['attack']}, Defense: {card['defense']}")
+
+if __name__ == "__main__":
+    executor.start_polling(dp, skip_updates=True)
+```
+
+---
+
+## ✨ Loyiha haqida
+
+Muallif: **Shoxruh Gaybullayev**
+Tizim: **Anime Battle Bot (Python + aiogram)**
+Versiya: `1.0.0`
+Yaratilgan: 2025-yil, Qashqadaryo 🇺🇿
+
+---
+
+> ⚠️ Eslatma: `characters.json` faylini men keyingi qadamda senga to‘liq (120ta personaj bilan) tayyorlab yuboraman, shunda README bilan birgalikda joylashtirishing mumkin bo‘ladi.
